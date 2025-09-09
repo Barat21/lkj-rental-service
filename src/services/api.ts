@@ -66,7 +66,7 @@ export const vanRentalAPI = {
       endDate,
       vanNumber,
     });
-    const res = await fetch(`${API_BASE}/searchByDateAndVan?${params.toString()}`);
+    const res = await fetch(`${API_BASE}/filter?${params.toString()}`);
     if (!res.ok) throw new Error("Failed to search by date and van");
     return res.json();
   },
