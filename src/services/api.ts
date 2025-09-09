@@ -12,7 +12,7 @@ export interface VanRentalTrip {
   totalRent: number;
 }
 
-const API_BASE = "http://localhost:8080/api/trips"; // Spring Boot backend URL
+const API_BASE = "https://van-rental-service.onrender.com/api/trips"; // Spring Boot backend URL
 
 export const vanRentalAPI = {
   // Get all trips
