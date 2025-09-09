@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Truck, RefreshCw } from 'lucide-react';
+import { Truck, RefreshCw, LogOut } from 'lucide-react';
+import { LoginScreen } from './components/LoginScreen';
 import { TripForm } from './components/TripForm';
 import { SearchBar } from './components/SearchBar';
 import { DataTable } from './components/DataTable';
@@ -9,6 +10,8 @@ import { exportToExcel } from './utils/export';
 import { useTranslation } from './utils/translations';
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState('');
   const [trips, setTrips] = useState<VanRentalTrip[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchResults, setSearchResults] = useState<VanRentalTrip[]>([]);
@@ -17,10 +20,25 @@ function App() {
   
   const t = useTranslation(language);
 
+  const handleLogin = (username: string) => {
+    setIsAuthenticated(true);
+    setCurrentUser(username);
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setCurrentUser('');
+    setTrips([]);
+    setSearchResults([]);
+    setIsSearching(false);
+  };
+
   // Load trips on component mount
   useEffect(() => {
-    loadTrips();
-  }, []);
+    if (isAuthenticated) {
+      loadTrips();
+    }
+  }, [isAuthenticated]);
 
   const loadTrips = async () => {
     setLoading(true);
@@ -123,6 +141,11 @@ function App() {
     setIsSearching(false);
   };
 
+  // Show login screen if not authenticated
+  if (!isAuthenticated) {
+    return <LoginScreen onLogin={handleLogin} />;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -139,10 +162,20 @@ function App() {
               </div>
             </div>
             <div className="flex items-center gap-4">
+              <div className="text-sm text-gray-600">
+                Welcome, <span className="font-medium">{currentUser}</span>
+              </div>
               <LanguageToggle 
                 currentLanguage={language}
                 onLanguageChange={setLanguage}
               />
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                <LogOut className="h-4 w-4" />
+                Logout
+              </button>
               <button
                 onClick={handleRefresh}
                 disabled={loading}
