@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Truck, RefreshCw, LogOut } from 'lucide-react';
 import { LoginScreen } from './components/LoginScreen';
+import { LoadingSpinner } from './components/LoadingSpinner';
 import { TripForm } from './components/TripForm';
 import { SearchBar } from './components/SearchBar';
 import { DataTable } from './components/DataTable';
 import { LanguageToggle } from './components/LanguageToggle';
 import { vanRentalAPI, VanRentalTrip } from './services/api';
 import { exportToExcel } from './utils/export';
+import { printDataTable } from './utils/print';
 import { useTranslation } from './utils/translations';
 
 function App() {
@@ -17,6 +19,7 @@ function App() {
   const [searchResults, setSearchResults] = useState<VanRentalTrip[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [language, setLanguage] = useState('en');
+  const [isFormCollapsed, setIsFormCollapsed] = useState(true);
   
   const t = useTranslation(language);
 
@@ -136,6 +139,10 @@ function App() {
     exportToExcel(searchResults);
   };
 
+  const handlePrint = () => {
+    printDataTable(searchResults);
+  };
+
   const handleRefresh = () => {
     loadTrips();
     setIsSearching(false);
@@ -162,9 +169,6 @@ function App() {
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <div className="text-sm text-gray-600">
-                Welcome, <span className="font-medium">{currentUser}</span>
-              </div>
               <LanguageToggle 
                 currentLanguage={language}
                 onLanguageChange={setLanguage}
@@ -191,9 +195,6 @@ function App() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Trip Form */}
-        <TripForm onSubmit={handleAddTrip} loading={loading} t={t} />
-
         {/* Search Bar */}
         <SearchBar
           onSearch={handleSearch}
@@ -223,10 +224,23 @@ function App() {
           onUpdate={handleUpdateTrip}
           onDelete={handleDeleteTrip}
           onExport={handleExport}
+          onPrint={handlePrint}
           loading={loading}
           t={t}
         />
+
+        {/* Trip Form - Now at the bottom and collapsible */}
+        <TripForm 
+          onSubmit={handleAddTrip} 
+          loading={loading} 
+          t={t}
+          isCollapsed={isFormCollapsed}
+          onToggleCollapse={() => setIsFormCollapsed(!isFormCollapsed)}
+        />
       </main>
+
+      {/* Loading Spinner Overlay */}
+      {loading && <LoadingSpinner message="Processing..." />}
     </div>
   );
 }

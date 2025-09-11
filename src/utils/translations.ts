@@ -112,9 +112,9 @@ export const translations: Record<string, Translations> = {
     deleteConfirm: "Are you sure you want to delete this trip?",
 
     // Placeholders
-    vanNumberPlaceholder: "VAN-101",
-    pickupPlaceholder: "Downtown Station",
-    dropoffPlaceholder: "Airport Terminal"
+    vanNumberPlaceholder: "TNXX XXXX",
+    pickupPlaceholder: "Chennai",
+    dropoffPlaceholder: "Tindivanam"
   },
   ta: {
     // Header
@@ -170,9 +170,9 @@ export const translations: Record<string, Translations> = {
     deleteConfirm: "இந்த பயணத்தை நீக்க விரும்புகிறீர்களா?",
 
     // Placeholders
-    vanNumberPlaceholder: "வேன்-101",
-    pickupPlaceholder: "நகர மையம்",
-    dropoffPlaceholder: "விமான நிலையம்"
+    vanNumberPlaceholder: "TNXX",
+    pickupPlaceholder: "சென்னை",
+    dropoffPlaceholder: "திண்டிவனம்"
   }
 };
 
