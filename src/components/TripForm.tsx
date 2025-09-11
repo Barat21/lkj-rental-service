@@ -61,9 +61,10 @@ export const TripForm: React.FC<TripFormProps> = ({
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="bg-blue-100 p-2 rounded-lg">
-            <Plus className="h-5 w-5 text-blue-600" />
+            <Plus className="h-5 w-5 text-blue-600" onClick={onToggleCollapse}/>
           </div>
-          <h2 className="text-xl font-semibold text-gray-900">{t.addNewTrip}</h2>
+          <h2 className="text-xl font-semibold text-gray-900"
+          onClick={onToggleCollapse}>{t.addNewTrip}</h2>
         </div>
         {onToggleCollapse && (
           <button
@@ -71,17 +72,6 @@ export const TripForm: React.FC<TripFormProps> = ({
             onClick={onToggleCollapse}
             className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
           >
-            {isCollapsed ? (
-              <>
-                <span className="text-sm">Show Form</span>
-                <ChevronDown className="h-4 w-4" />
-              </>
-            ) : (
-              <>
-                <span className="text-sm">Hide Form</span>
-                <ChevronUp className="h-4 w-4" />
-              </>
-            )}
           </button>
         )}
       </div>

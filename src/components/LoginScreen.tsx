@@ -7,7 +7,8 @@ interface LoginScreenProps {
 
 const VALID_CREDENTIALS = [
   { username: 'Admin', password: 'lkjadmin' },
-  { username: 'Barath', password: 'barat2197' }
+  { username: 'Barath', password: 'barat2197' },
+  { username: 'lkj', password: 'lkj' },
 ];
 
 export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
