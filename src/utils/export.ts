@@ -1,163 +1,167 @@
 import { VanRentalTrip } from '../services/api';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import html2canvas from 'html2canvas';
 
-// Function to convert Tamil text to a format that displays correctly in PDF
-const formatTextForPDF = (text: string): string => {
-  // For Tamil text, we'll use a fallback approach
-  // If the text contains Tamil characters, we'll transliterate or use English equivalents
-  const tamilPattern = /[\u0B80-\u0BFF]/;
-  
-  if (tamilPattern.test(text)) {
-    // Common Tamil to English mappings for locations
-    const tamilToEnglish: { [key: string]: string } = {
-      'சென்னை': 'Chennai',
-      'திண்டிவனம்': 'Tindivanam',
-      'கடலூர்': 'Cuddalore',
-      'பாண்டிச்சேரி': 'Puducherry',
-      'விழுப்புரம்': 'Villupuram',
-      'கல்லக்குறிச்சி': 'Kallakurichi',
-      'சேலம்': 'Salem',
-      'கோவை': 'Coimbatore',
-      'மதுரை': 'Madurai',
-      'திருச்சி': 'Trichy',
-      'தஞ்சாவூர்': 'Thanjavur',
-      'திருநெல்வேலி': 'Tirunelveli',
-      'கன்னியாகுமரி': 'Kanyakumari',
-      'ஈரோடு': 'Erode',
-      'திருப்பூர்': 'Tirupur',
-      'வேலூர்': 'Vellore',
-      'திருவண்ணாமலை': 'Tiruvannamalai',
-      'கரூர்': 'Karur',
-      'நாமக்கல்': 'Namakkal',
-      'தர்மபுரி': 'Dharmapuri',
-      'கிருஷ்ணகிரி': 'Krishnagiri',
-      'ராமநாதபுரம்': 'Ramanathapuram',
-      'சிவகங்கை': 'Sivaganga',
-      'புதுக்கோட்டை': 'Pudukkottai',
-      'பெரம்பலூர்': 'Perambalur',
-      'அரியலூர்': 'Ariyalur',
-      'நாகப்பட்டினம்': 'Nagapattinam',
-      'திருவாரூர்': 'Tiruvarur',
-      'டிண்டுக்கல்': 'Dindigul',
-      'தேனி': 'Theni',
-      'விருதுநகர்': 'Virudhunagar',
-      'தூத்துக்குடி': 'Thoothukudi',
-      'திருச்செந்தூர்': 'Tiruchendur'
-    };
+// Alternative method using HTML table for better Unicode support
+const exportViaHTML = async (trips: VanRentalTrip[]) => {
+  // Create a temporary HTML table
+  const tableHTML = `
+    <div style="font-family: Arial, sans-serif; padding: 20px; background: white;">
+      <h1 style="text-align: center; margin-bottom: 10px;">LKJ Rental Service</h1>
+      <h2 style="text-align: center; margin-bottom: 20px; font-size: 16px;">Trip Records Report</h2>
+      <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+        <thead>
+          <tr style="background-color: #2563eb; color: white;">
+            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Trip ID</th>
+            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Van Number</th>
+            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Date</th>
+            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Pickup Location</th>
+            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Dropoff Location</th>
+            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Wayment</th>
+            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Bags</th>
+            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Rent</th>
+            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Misc</th>
+            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Total Rent</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${trips.map((trip, index) => `
+            <tr style="background-color: ${index % 2 === 0 ? '#f8f9fa' : 'white'};">
+              <td style="border: 1px solid #ddd; padding: 8px;">${trip.id}</td>
+              <td style="border: 1px solid #ddd; padding: 8px;">${trip.vanNumber}</td>
+              <td style="border: 1px solid #ddd; padding: 8px;">${trip.date}</td>
+              <td style="border: 1px solid #ddd; padding: 8px;">${trip.pickupLocation}</td>
+              <td style="border: 1px solid #ddd; padding: 8px;">${trip.dropoffLocation}</td>
+              <td style="border: 1px solid #ddd; padding: 8px;">${trip.wayment.toLocaleString()}</td>
+              <td style="border: 1px solid #ddd; padding: 8px;">${trip.noOfBags}</td>
+              <td style="border: 1px solid #ddd; padding: 8px;">${trip.rent.toLocaleString()}</td>
+              <td style="border: 1px solid #ddd; padding: 8px;">${trip.miscSpending.toLocaleString()}</td>
+              <td style="border: 1px solid #ddd; padding: 8px;">${trip.totalRent.toLocaleString()}</td>
+            </tr>
+          `).join('')}
+          <tr style="background-color: #f8f9fa; font-weight: bold;">
+            <td colspan="9" style="border: 1px solid #ddd; padding: 8px; text-align: right;">Total:</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">${trips.reduce((sum, trip) => sum + trip.totalRent, 0).toLocaleString()}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="margin-top: 20px; font-size: 10px;">
+        <p>Generated on: ${new Date().toLocaleString()}</p>
+        <p>Total Records: ${trips.length}</p>
+      </div>
+    </div>
+  `;
 
-    // Try to find exact match first
-    if (tamilToEnglish[text]) {
-      return tamilToEnglish[text];
+  // Create a temporary div
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = tableHTML;
+  tempDiv.style.position = 'absolute';
+  tempDiv.style.left = '-9999px';
+  tempDiv.style.top = '-9999px';
+  tempDiv.style.width = '1200px';
+  document.body.appendChild(tempDiv);
+
+  try {
+    // Convert to canvas
+    const canvas = await html2canvas(tempDiv, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#ffffff'
+    });
+
+    // Create PDF
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF('l', 'mm', 'a4'); // Landscape orientation
+    
+    const imgWidth = 297; // A4 landscape width
+    const pageHeight = 210; // A4 landscape height
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    let heightLeft = imgHeight;
+    let position = 0;
+
+    // Add first page
+    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+
+    // Add additional pages if needed
+    while (heightLeft >= 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
     }
 
-    // If no exact match, try partial matches
-    for (const [tamil, english] of Object.entries(tamilToEnglish)) {
-      if (text.includes(tamil)) {
-        return text.replace(tamil, english);
-      }
-    }
+    // Save the PDF
+    const timestamp = new Date().toISOString().split('T')[0];
+    pdf.save(`LKJ-Rental-Trips-${timestamp}.pdf`);
 
-    // If no mapping found, return transliterated version (remove Tamil characters)
-    return text.replace(/[\u0B80-\u0BFF]/g, '?');
+  } finally {
+    // Clean up
+    document.body.removeChild(tempDiv);
   }
-
-  return text;
 };
 
-export const exportToPDF = (trips: VanRentalTrip[]) => {
-  const doc = new jsPDF();
-  
-  // Set font to helvetica (better Unicode support)
-  doc.setFont('helvetica');
-  
-  // Add title
-  doc.setFontSize(20);
-  doc.text('LKJ Rental Service', 105, 20, { align: 'center' });
-  doc.setFontSize(14);
-  doc.text('Trip Records Report', 105, 30, { align: 'center' });
-  
-  // Prepare table data with proper text formatting
-  const headers = [
-    'Trip ID',
-    'Van Number', 
-    'Date',
-    'Pickup',
-    'Dropoff',
-    'Wayment',
-    'Bags',
-    'Rent',
-    'Misc',
-    'Total'
-  ];
-  
-  const data = trips.map(trip => [
-    trip.id,
-    trip.vanNumber,
-    trip.date,
-    formatTextForPDF(trip.pickupLocation),
-    formatTextForPDF(trip.dropoffLocation),
-    trip.wayment.toLocaleString(),
-    trip.noOfBags.toString(),
-    trip.rent.toLocaleString(),
-    trip.miscSpending.toLocaleString(),
-    trip.totalRent.toLocaleString()
-  ]);
-  
-  // Add total row
-  const totalRentSum = trips.reduce((sum, trip) => sum + trip.totalRent, 0);
-  data.push([
-    '', '', '', '', '', '', '', '', 'Total:', totalRentSum.toLocaleString()
-  ]);
-  
-  // Create table
-  autoTable(doc, {
-    head: [headers],
-    body: data,
-    startY: 40,
-    styles: {
-      fontSize: 8,
-      cellPadding: 2,
-      font: 'helvetica',
-      fontStyle: 'normal'
-    },
-    headStyles: {
-      fillColor: [37, 99, 235],
-      textColor: 255,
-      fontStyle: 'bold'
-    },
-    bodyStyles: {
-      textColor: 50
-    },
-    alternateRowStyles: {
-      fillColor: [248, 249, 250]
-    },
-    columnStyles: {
-      0: { cellWidth: 15 }, // Trip ID
-      1: { cellWidth: 20 }, // Van Number
-      2: { cellWidth: 20 }, // Date
-      3: { cellWidth: 25 }, // Pickup
-      4: { cellWidth: 25 }, // Dropoff
-      5: { cellWidth: 18 }, // Wayment
-      6: { cellWidth: 12 }, // Bags
-      7: { cellWidth: 15 }, // Rent
-      8: { cellWidth: 15 }, // Misc
-      9: { cellWidth: 20 }  // Total
-    },
-    didParseCell: function(data) {
-      // Make the total row bold
-      if (data.row.index === trips.length) {
-        data.cell.styles.fontStyle = 'bold';
-        data.cell.styles.fillColor = [248, 249, 250];
+export const exportToPDF = async (trips: VanRentalTrip[]) => {
+  try {
+    // Try the HTML-to-canvas method for better Unicode support
+    await exportViaHTML(trips);
+  } catch (error) {
+    console.error('HTML export failed, falling back to basic PDF:', error);
+    
+    // Fallback to basic jsPDF method
+    const doc = new jsPDF();
+    
+    doc.setFont('helvetica');
+    doc.setFontSize(20);
+    doc.text('LKJ Rental Service', 105, 20, { align: 'center' });
+    doc.setFontSize(14);
+    doc.text('Trip Records Report', 105, 30, { align: 'center' });
+    
+    const headers = [
+      'Trip ID', 'Van Number', 'Date', 'Pickup Location', 'Dropoff Location',
+      'Wayment', 'Bags', 'Rent', 'Misc', 'Total Rent'
+    ];
+    
+    const data = trips.map(trip => [
+      trip.id,
+      trip.vanNumber,
+      trip.date,
+      trip.pickupLocation,
+      trip.dropoffLocation,
+      trip.wayment.toLocaleString(),
+      trip.noOfBags.toString(),
+      trip.rent.toLocaleString(),
+      trip.miscSpending.toLocaleString(),
+      trip.totalRent.toLocaleString()
+    ]);
+    
+    const totalRentSum = trips.reduce((sum, trip) => sum + trip.totalRent, 0);
+    data.push(['', '', '', '', '', '', '', '', 'Total:', totalRentSum.toLocaleString()]);
+    
+    autoTable(doc, {
+      head: [headers],
+      body: data,
+      startY: 40,
+      styles: {
+        fontSize: 8,
+        cellPadding: 3,
+        overflow: 'linebreak',
+        cellWidth: 'wrap'
+      },
+      headStyles: {
+        fillColor: [37, 99, 235],
+        textColor: 255,
+        fontStyle: 'bold'
+      },
+      columnStyles: {
+        3: { cellWidth: 40 },
+        4: { cellWidth: 40 }
       }
-    }
-  });
-  
-  // Add generation date
-  const finalY = (doc as any).lastAutoTable.finalY || 40;
-  doc.setFontSize(10);
-  doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, finalY + 20);
-  
-  // Save the PDF
-  doc.save(`van-rental-trips-${new Date().toISOString().split('T')[0]}.pdf`);
+    });
+    
+    const timestamp = new Date().toISOString().split('T')[0];
+    doc.save(`LKJ-Rental-Trips-${timestamp}.pdf`);
+  }
 };
