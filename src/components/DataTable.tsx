@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Edit2, Save, X, Download, Trash2, Printer } from 'lucide-react';
+import { Edit2, Save, X, Download, Trash2 } from 'lucide-react';
 import { VanRentalTrip } from '../services/api';
 import { Translations } from '../utils/translations';
 
@@ -8,7 +8,6 @@ interface DataTableProps {
   onUpdate: (id: string, updates: Partial<VanRentalTrip>) => void;
   onDelete: (id: string) => void;
   onExport: () => void;
-  onPrint: () => void;
   loading?: boolean;
   t: Translations;
 }
@@ -18,7 +17,6 @@ export const DataTable: React.FC<DataTableProps> = ({
   onUpdate, 
   onDelete, 
   onExport, 
-  onPrint,
   loading,
   t
 }) => {
@@ -124,18 +122,11 @@ export const DataTable: React.FC<DataTableProps> = ({
         <h3 className="text-lg font-medium text-gray-900">{t.tripRecords}</h3>
         <div className="flex items-center gap-3">
           <button
-            onClick={onPrint}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-          >
-            <Printer className="h-4 w-4" />
-            Print
-          </button>
-          <button
             onClick={onExport}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
           >
             <Download className="h-4 w-4" />
-            {t.exportToExcel}
+            {t.exportToPDF}
           </button>
         </div>
       </div>

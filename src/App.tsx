@@ -7,8 +7,7 @@ import { SearchBar } from './components/SearchBar';
 import { DataTable } from './components/DataTable';
 import { LanguageToggle } from './components/LanguageToggle';
 import { vanRentalAPI, VanRentalTrip } from './services/api';
-import { exportToExcel } from './utils/export';
-import { printDataTable } from './utils/print';
+import { exportToPDF } from './utils/export';
 import { useTranslation } from './utils/translations';
 
 function App() {
@@ -136,11 +135,7 @@ function App() {
   };
 
   const handleExport = () => {
-    exportToExcel(searchResults);
-  };
-
-  const handlePrint = () => {
-    printDataTable(searchResults);
+    exportToPDF(searchResults);
   };
 
   const handleRefresh = () => {
@@ -224,7 +219,6 @@ function App() {
           onUpdate={handleUpdateTrip}
           onDelete={handleDeleteTrip}
           onExport={handleExport}
-          onPrint={handlePrint}
           loading={loading}
           t={t}
         />

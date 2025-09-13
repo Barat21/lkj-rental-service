@@ -31,7 +31,7 @@ export interface Translations {
 
   // Table
   tripRecords: string;
-  exportToExcel: string;
+  exportToPDF: string;
   tripId: string;
   pickup: string;
   dropoff: string;
@@ -91,7 +91,7 @@ export const translations: Record<string, Translations> = {
 
     // Table
     tripRecords: "Trip Records",
-    exportToExcel: "Export to Excel",
+    exportToPDF: "Export to PDF",
     tripId: "Trip ID",
     pickup: "Pickup",
     dropoff: "Dropoff",
@@ -149,7 +149,7 @@ export const translations: Record<string, Translations> = {
 
     // Table
     tripRecords: "பயண பதிவுகள்",
-    exportToExcel: "எக்செல் ஏற்றுமதி",
+    exportToPDF: "PDF ஏற்றுமதி",
     tripId: "பயண ஐடி",
     pickup: "எடுக்கும் இடம்",
     dropoff: "விடும் இடம்",
