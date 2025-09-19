@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, ChevronDown, ChevronUp } from 'lucide-react';
 import { VanRentalTrip } from '../services/api';
+import { mockAPI, VanSuggestion } from '../services/mockApi';
 import { Translations } from '../utils/translations';
 
 interface TripFormProps {
@@ -23,18 +24,30 @@ export const TripForm: React.FC<TripFormProps> = ({
     date: '',
     pickupLocation: '',
     dropoffLocation: '',
-    wayment: 0,
-    rent: 0,
-    miscSpending: 0
+    wayment: '',
+    rent: '',
+    miscSpending: ''
   });
+  const [vanSuggestions, setVanSuggestions] = useState<VanSuggestion[]>([]);
+  const [showVanSuggestions, setShowVanSuggestions] = useState(false);
+  const [loadingRent, setLoadingRent] = useState(false);
 
-  const noOfBags = Math.floor(formData.wayment / 78);
-  const totalRent = Math.round(noOfBags * formData.rent + formData.miscSpending);
+  const waymentNum = parseFloat(formData.wayment) || 0;
+  const rentNum = parseFloat(formData.rent) || 0;
+  const miscNum = parseFloat(formData.miscSpending) || 0;
+  const noOfBags = Math.floor(waymentNum / 78);
+  const totalRent = Math.round(noOfBags * rentNum + miscNum);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({
-      ...formData,
+      vanNumber: formData.vanNumber,
+      date: formData.date,
+      pickupLocation: formData.pickupLocation,
+      dropoffLocation: formData.dropoffLocation,
+      wayment: waymentNum,
+      rent: rentNum,
+      miscSpending: miscNum,
       noOfBags,
       totalRent
     });
@@ -43,10 +56,12 @@ export const TripForm: React.FC<TripFormProps> = ({
       date: '',
       pickupLocation: '',
       dropoffLocation: '',
-      wayment: 0,
-      rent: 0,
-      miscSpending: 0
+      wayment: '',
+      rent: '',
+      miscSpending: ''
     });
+    setVanSuggestions([]);
+    setShowVanSuggestions(false);
   };
 
   const handleInputChange = (field: string, value: string | number) => {
@@ -54,6 +69,45 @@ export const TripForm: React.FC<TripFormProps> = ({
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleVanNumberChange = async (value: string) => {
+    handleInputChange('vanNumber', value);
+    
+    if (value.length > 0) {
+      try {
+        const suggestions = await mockAPI.getVanSuggestions(value);
+        setVanSuggestions(suggestions);
+        setShowVanSuggestions(true);
+      } catch (error) {
+        console.error('Error fetching van suggestions:', error);
+      }
+    } else {
+      setVanSuggestions([]);
+      setShowVanSuggestions(false);
+    }
+  };
+
+  const selectVanSuggestion = (vanNumber: string) => {
+    handleInputChange('vanNumber', vanNumber);
+    setShowVanSuggestions(false);
+    setVanSuggestions([]);
+  };
+
+  const handleDropoffLocationChange = async (value: string) => {
+    handleInputChange('dropoffLocation', value);
+    
+    if (value.trim().length > 2 && formData.pickupLocation.trim().length > 0) {
+      setLoadingRent(true);
+      try {
+        const rent = await mockAPI.getRentByLocation(formData.pickupLocation, value);
+        handleInputChange('rent', rent.toString());
+      } catch (error) {
+        console.error('Error fetching rent information:', error);
+      } finally {
+        setLoadingRent(false);
+      }
+    }
   };
 
   return (
@@ -79,18 +133,50 @@ export const TripForm: React.FC<TripFormProps> = ({
       {!isCollapsed && (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div>
+            <div className="relative">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {t.vanNumber}
               </label>
               <input
                 type="text"
                 value={formData.vanNumber}
-                onChange={(e) => handleInputChange('vanNumber', e.target.value)}
+                onChange={(e) => handleVanNumberChange(e.target.value)}
+                onFocus={() => {
+                  if (vanSuggestions.length > 0) {
+                    setShowVanSuggestions(true);
+                  }
+                }}
+                onBlur={() => {
+                  // Delay hiding suggestions to allow clicking
+                  setTimeout(() => setShowVanSuggestions(false), 200);
+                }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                 placeholder={t.vanNumberPlaceholder}
                 required
               />
+              {showVanSuggestions && vanSuggestions.length > 0 && (
+                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                  {vanSuggestions.map((suggestion, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => selectVanSuggestion(suggestion.vanNumber)}
+                      className="w-full px-3 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none first:rounded-t-lg last:rounded-b-lg"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span>{suggestion.vanNumber}</span>
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          suggestion.isActive 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {suggestion.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div>
@@ -127,11 +213,19 @@ export const TripForm: React.FC<TripFormProps> = ({
               <input
                 type="text"
                 value={formData.dropoffLocation}
-                onChange={(e) => handleInputChange('dropoffLocation', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                onChange={(e) => handleDropoffLocationChange(e.target.value)}
+                className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+                  loadingRent ? 'bg-gray-50' : ''
+                }`}
                 placeholder={t.dropoffPlaceholder}
                 required
               />
+              {loadingRent && (
+                <p className="text-xs text-blue-600 mt-1 flex items-center gap-1">
+                  <div className="animate-spin rounded-full h-3 w-3 border-2 border-blue-600 border-t-transparent"></div>
+                  Loading rent information...
+                </p>
+              )}
             </div>
 
             <div>
@@ -139,12 +233,11 @@ export const TripForm: React.FC<TripFormProps> = ({
                 {t.wayment}
               </label>
               <input
-                type="number"
+                type="text"
                 value={formData.wayment}
-                onChange={(e) => handleInputChange('wayment', parseInt(e.target.value) || 0)}
+                onChange={(e) => handleInputChange('wayment', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                 placeholder="156"
-                min="0"
                 required
               />
             </div>
@@ -167,15 +260,18 @@ export const TripForm: React.FC<TripFormProps> = ({
                 {t.rent}
               </label>
               <input
-                type="number"
+                type="text"
                 value={formData.rent}
-                onChange={(e) => handleInputChange('rent', parseFloat(e.target.value) || 0)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                onChange={(e) => handleInputChange('rent', e.target.value)}
+                className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+                  loadingRent ? 'bg-blue-50 border-blue-300' : ''
+                }`}
                 placeholder="150"
-                min="0"
-                step="0.01"
                 required
               />
+              {loadingRent && (
+                <p className="text-xs text-blue-600 mt-1">Auto-filling based on location...</p>
+              )}
             </div>
 
             <div>
@@ -183,13 +279,11 @@ export const TripForm: React.FC<TripFormProps> = ({
                 {t.miscSpending}
               </label>
               <input
-                type="number"
+                type="text"
                 value={formData.miscSpending}
-                onChange={(e) => handleInputChange('miscSpending', parseFloat(e.target.value) || 0)}
+                onChange={(e) => handleInputChange('miscSpending', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                 placeholder="25"
-                min="0"
-                step="0.01"
               />
             </div>
 
