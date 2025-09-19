@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, ChevronDown, ChevronUp } from 'lucide-react';
 import { VanRentalTrip } from '../services/api';
-import { mockAPI, VanSuggestion } from '../services/mockApi';
+import { realAPI, VanSuggestion } from '../services/mockApi';
 import { Translations } from '../utils/translations';
 
 interface TripFormProps {
@@ -76,7 +76,7 @@ export const TripForm: React.FC<TripFormProps> = ({
     
     if (value.length > 0) {
       try {
-        const suggestions = await mockAPI.getVanSuggestions(value);
+        const suggestions = await realAPI.getVanSuggestions(value);
         setVanSuggestions(suggestions);
         setShowVanSuggestions(true);
       } catch (error) {
@@ -94,13 +94,29 @@ export const TripForm: React.FC<TripFormProps> = ({
     setVanSuggestions([]);
   };
 
+  const handlePickupLocationChange = async (value: string) => {
+    handleInputChange('pickupLocation', value);
+    
+    if (value.trim().length > 2 && formData.dropoffLocation.trim().length > 0) {
+      setLoadingRent(true);
+      try {
+        const rent = await realAPI.getRentByLocation(value, formData.dropoffLocation);
+        handleInputChange('rent', rent.toString());
+      } catch (error) {
+        console.error('Error fetching rent information:', error);
+      } finally {
+        setLoadingRent(false);
+      }
+    }
+  };
+
   const handleDropoffLocationChange = async (value: string) => {
     handleInputChange('dropoffLocation', value);
     
     if (value.trim().length > 2 && formData.pickupLocation.trim().length > 0) {
       setLoadingRent(true);
       try {
-        const rent = await mockAPI.getRentByLocation(formData.pickupLocation, value);
+        const rent = await realAPI.getRentByLocation(formData.pickupLocation, value);
         handleInputChange('rent', rent.toString());
       } catch (error) {
         console.error('Error fetching rent information:', error);
@@ -199,11 +215,19 @@ export const TripForm: React.FC<TripFormProps> = ({
               <input
                 type="text"
                 value={formData.pickupLocation}
-                onChange={(e) => handleInputChange('pickupLocation', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                onChange={(e) => handlePickupLocationChange(e.target.value)}
+                className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+                  loadingRent ? 'bg-gray-50' : ''
+                }`}
                 placeholder={t.pickupPlaceholder}
                 required
               />
+              {loadingRent && (
+                <p className="text-xs text-blue-600 mt-1 flex items-center gap-1">
+                  <div className="animate-spin rounded-full h-3 w-3 border-2 border-blue-600 border-t-transparent"></div>
+                  Loading rent information...
+                </p>
+              )}
             </div>
 
             <div>
