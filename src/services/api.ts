@@ -82,7 +82,7 @@ export const vanRentalAPI = {
       amount: amount.toString(),
     });
     const res = await fetch(`${API_BASE}/recordPayment?${params.toString()}`, {
-      method: "POST",
+      method: "GET",
     });
     if (!res.ok) throw new Error("Failed to record payment");
   },
