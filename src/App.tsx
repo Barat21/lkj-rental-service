@@ -5,6 +5,7 @@ import { LoadingSpinner } from './components/LoadingSpinner';
 import { TripForm } from './components/TripForm';
 import { SearchBar } from './components/SearchBar';
 import { DataTable } from './components/DataTable';
+import { PaymentForm } from './components/PaymentForm';
 import { LanguageToggle } from './components/LanguageToggle';
 import { vanRentalAPI, VanRentalTrip } from './services/api';
 import { exportToPDF } from './utils/export';
@@ -19,6 +20,8 @@ function App() {
   const [isSearching, setIsSearching] = useState(false);
   const [language, setLanguage] = useState('en');
   const [isFormCollapsed, setIsFormCollapsed] = useState(true);
+  const [isPaymentFormCollapsed, setIsPaymentFormCollapsed] = useState(true);
+  const [paymentFilter, setPaymentFilter] = useState<'all' | 'paid' | 'unpaid'>('unpaid');
   
   const t = useTranslation(language);
 
@@ -42,12 +45,21 @@ function App() {
     }
   }, [isAuthenticated]);
 
+  // Load trips when payment filter changes
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadTripsWithFilter();
+    }
+  }, [paymentFilter, isAuthenticated]);
+
   const loadTrips = async () => {
     setLoading(true);
     try {
       const data = await vanRentalAPI.getAllTrips();
-      setTrips(data);
-      setSearchResults(data);
+      // Filter based on current payment filter
+      const filteredData = filterTripsByPaymentStatus(data, paymentFilter);
+      setTrips(filteredData);
+      setSearchResults(filteredData);
     } catch (error) {
       console.error('Error loading trips:', error);
     } finally {
@@ -55,16 +67,70 @@ function App() {
     }
   };
 
+  const loadTripsWithFilter = async () => {
+    setLoading(true);
+    try {
+      const data = await vanRentalAPI.getAllTrips();
+      const filteredData = filterTripsByPaymentStatus(data, paymentFilter);
+      setTrips(filteredData);
+      if (!isSearching) {
+        setSearchResults(filteredData);
+      }
+    } catch (error) {
+      console.error('Error loading trips:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filterTripsByPaymentStatus = (trips: VanRentalTrip[], status: 'all' | 'paid' | 'unpaid'): VanRentalTrip[] => {
+    if (status === 'all') return trips;
+    if (status === 'paid') return trips.filter(trip => trip.paid === true);
+    return trips.filter(trip => trip.paid !== true); // unpaid (false or undefined)
+  };
+
   const handleAddTrip = async (tripData: Omit<VanRentalTrip, 'id'>) => {
     setLoading(true);
     try {
       const newTrip = await vanRentalAPI.createTrip(tripData);
-      setTrips(prev => [...prev, newTrip]);
-      if (!isSearching) {
-        setSearchResults(prev => [...prev, newTrip]);
+      // Only add to current view if it matches the payment filter
+      if (paymentFilter === 'all' || 
+          (paymentFilter === 'paid' && newTrip.paid) || 
+          (paymentFilter === 'unpaid' && !newTrip.paid)) {
+        setTrips(prev => [...prev, newTrip]);
+        if (!isSearching) {
+          setSearchResults(prev => [...prev, newTrip]);
+        }
       }
     } catch (error) {
       console.error('Error adding trip:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRecordPayment = async (paymentData: {
+    vanNumber: string;
+    startDate: string;
+    endDate: string;
+    amount: number;
+    transactionDate: string;
+  }) => {
+    setLoading(true);
+    try {
+      await vanRentalAPI.recordPayment(
+        paymentData.startDate,
+        paymentData.endDate,
+        paymentData.vanNumber,
+        paymentData.transactionDate,
+        paymentData.amount
+      );
+      // Reload trips to reflect payment status changes
+      await loadTripsWithFilter();
+      alert(t.paymentRecorded);
+    } catch (error) {
+      console.error('Error recording payment:', error);
+      alert('Error recording payment. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -94,7 +160,8 @@ function App() {
 
   const handleSearch = async (query: string) => {
     if (!query.trim()) {
-      setSearchResults(trips);
+      const filteredTrips = filterTripsByPaymentStatus(trips, paymentFilter);
+      setSearchResults(filteredTrips);
       setIsSearching(false);
       return;
     }
@@ -102,7 +169,7 @@ function App() {
     setLoading(true);
     setIsSearching(true);
     try {
-      const results = await vanRentalAPI.searchTrips(query);
+      const results = await vanRentalAPI.searchTripsWithPaymentFilter(query, paymentFilter);
       setSearchResults(results);
     } catch (error) {
       console.error('Error searching trips:', error);
@@ -111,9 +178,10 @@ function App() {
     }
   };
 
-  const handleAdvancedSearch = async (startDate: string, endDate: string, vanNumber: string) => {
+  const handleAdvancedSearch = async (startDate: string, endDate: string, vanNumber: string, paymentStatus: 'all' | 'paid' | 'unpaid') => {
     if (!startDate && !endDate && !vanNumber) {
-      setSearchResults(trips);
+      const filteredTrips = filterTripsByPaymentStatus(trips, paymentStatus);
+      setSearchResults(filteredTrips);
       setIsSearching(false);
       return;
     }
@@ -121,10 +189,11 @@ function App() {
     setLoading(true);
     setIsSearching(true);
     try {
-      const results = await vanRentalAPI.searchByDateAndVan(
+      const results = await vanRentalAPI.searchByDateVanAndPayment(
         startDate || '1900-01-01',
         endDate || '2100-12-31',
-        vanNumber
+        vanNumber,
+        paymentStatus
       );
       setSearchResults(results);
     } catch (error) {
@@ -138,8 +207,13 @@ function App() {
     exportToPDF(searchResults);
   };
 
+  const handlePaymentFilterChange = (filter: 'all' | 'paid' | 'unpaid') => {
+    setPaymentFilter(filter);
+    setIsSearching(false);
+  };
+
   const handleRefresh = () => {
-    loadTrips();
+    loadTripsWithFilter();
     setIsSearching(false);
   };
 
@@ -196,6 +270,8 @@ function App() {
           onAdvancedSearch={handleAdvancedSearch}
           loading={loading}
           t={t}
+          paymentFilter={paymentFilter}
+          onPaymentFilterChange={handlePaymentFilterChange}
         />
 
         {/* Results Info */}
@@ -231,6 +307,16 @@ function App() {
           isCollapsed={isFormCollapsed}
           onToggleCollapse={() => setIsFormCollapsed(!isFormCollapsed)}
         />
+
+           {/* Payment Form */}
+        <PaymentForm 
+          onSubmit={handleRecordPayment} 
+          loading={loading} 
+          t={t}
+          isCollapsed={isPaymentFormCollapsed}
+          onToggleCollapse={() => setIsPaymentFormCollapsed(!isPaymentFormCollapsed)}
+        />
+        
       </main>
 
       {/* Loading Spinner Overlay */}

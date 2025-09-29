@@ -4,19 +4,34 @@ import { Translations } from '../utils/translations';
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
-  onAdvancedSearch: (startDate: string, endDate: string, vanNumber: string) => void;
+  onAdvancedSearch: (startDate: string, endDate: string, vanNumber: string, paymentStatus: 'all' | 'paid' | 'unpaid') => void;
   loading?: boolean;
   t: Translations;
+  paymentFilter: 'all' | 'paid' | 'unpaid';
+  onPaymentFilterChange: (filter: 'all' | 'paid' | 'unpaid') => void;
 }
 
-export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onAdvancedSearch, loading, t }) => {
+export const SearchBar: React.FC<SearchBarProps> = ({ 
+  onSearch, 
+  onAdvancedSearch, 
+  loading, 
+  t, 
+  paymentFilter, 
+  onPaymentFilterChange 
+}) => {
   const [generalSearch, setGeneralSearch] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [advancedSearch, setAdvancedSearch] = useState({
     startDate: '',
     endDate: '',
-    vanNumber: ''
+    vanNumber: '',
+    paymentStatus: paymentFilter
   });
+
+  // Update advanced search payment status when prop changes
+  React.useEffect(() => {
+    setAdvancedSearch(prev => ({ ...prev, paymentStatus: paymentFilter }));
+  }, [paymentFilter]);
 
   const handleGeneralSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,20 +40,39 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onAdvancedSearch
 
   const handleAdvancedSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    onAdvancedSearch(advancedSearch.startDate, advancedSearch.endDate, advancedSearch.vanNumber);
+    onAdvancedSearch(
+      advancedSearch.startDate, 
+      advancedSearch.endDate, 
+      advancedSearch.vanNumber, 
+      advancedSearch.paymentStatus as 'all' | 'paid' | 'unpaid'
+    );
   };
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-medium text-gray-900">{t.searchTrips}</h3>
-        <button
-          onClick={() => setShowAdvanced(!showAdvanced)}
-          className="flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors"
-        >
-          <Filter className="h-4 w-4" />
-          {t.advancedSearch}
-        </button>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700">{t.paymentStatus}:</label>
+            <select
+              value={paymentFilter}
+              onChange={(e) => onPaymentFilterChange(e.target.value as 'all' | 'paid' | 'unpaid')}
+              className="border border-gray-300 rounded px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="unpaid">{t.unpaid}</option>
+              <option value="all">{t.all}</option>
+              <option value="paid">{t.paid}</option>
+            </select>
+          </div>
+          <button
+            onClick={() => setShowAdvanced(!showAdvanced)}
+            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors"
+          >
+            <Filter className="h-4 w-4" />
+            {t.advancedSearch}
+          </button>
+        </div>
       </div>
 
       {/* General Search */}
@@ -67,7 +101,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onAdvancedSearch
       {/* Advanced Search */}
       {showAdvanced && (
         <form onSubmit={handleAdvancedSearch} className="border-t pt-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {t.startDate}
@@ -101,6 +135,20 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onAdvancedSearch
                 placeholder={t.vanNumberPlaceholder}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
               />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t.paymentStatus}
+              </label>
+              <select
+                value={advancedSearch.paymentStatus}
+                onChange={(e) => setAdvancedSearch(prev => ({ ...prev, paymentStatus: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              >
+                <option value="all">{t.all}</option>
+                <option value="paid">{t.paid}</option>
+                <option value="unpaid">{t.unpaid}</option>
+              </select>
             </div>
           </div>
           <button

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Edit2, Save, X, Download, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { CreditCard as Edit2, Save, X, Download, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { VanRentalTrip } from '../services/api';
 import { Translations } from '../utils/translations';
 

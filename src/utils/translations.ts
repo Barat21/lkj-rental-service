@@ -51,6 +51,22 @@ export interface Translations {
   showAllTrips: string;
   deleteConfirm: string;
 
+  // Payment
+  recordPayment: string;
+  fromDate: string;
+  toDate: string;
+  amount: string;
+  transactionDate: string;
+  recording: string;
+  paymentRecorded: string;
+
+  // Payment Status
+  paymentStatus: string;
+  all: string;
+  paid: string;
+  unpaid: string;
+  paymentStatusColumn: string;
+
   // Placeholders
   vanNumberPlaceholder: string;
   pickupPlaceholder: string;
@@ -111,6 +127,22 @@ export const translations: Record<string, Translations> = {
     showAllTrips: "Show all trips",
     deleteConfirm: "Are you sure you want to delete this trip?",
 
+    // Payment
+    recordPayment: "Record Payment",
+    fromDate: "From Date",
+    toDate: "To Date",
+    amount: "Amount",
+    transactionDate: "Transaction Date",
+    recording: "Recording...",
+    paymentRecorded: "Payment recorded successfully",
+
+    // Payment Status
+    paymentStatus: "Payment Status",
+    all: "All",
+    paid: "Paid",
+    unpaid: "Unpaid",
+    paymentStatusColumn: "Status",
+
     // Placeholders
     vanNumberPlaceholder: "TNXX XXXX",
     pickupPlaceholder: "Chennai",
@@ -168,6 +200,22 @@ export const translations: Record<string, Translations> = {
     showingResults: "தேடல் முடிவுகள்",
     showAllTrips: "அனைத்து பயணங்களையும் காட்டவும்",
     deleteConfirm: "இந்த பயணத்தை நீக்க விரும்புகிறீர்களா?",
+
+    // Payment
+    recordPayment: "பணம் பதிவு செய்யவும்",
+    fromDate: "தொடக்க தேதி",
+    toDate: "முடிவு தேதி",
+    amount: "தொகை",
+    transactionDate: "பரிவர்த்தனை தேதி",
+    recording: "பதிவு செய்கிறது...",
+    paymentRecorded: "பணம் வெற்றிகரமாக பதிவு செய்யப்பட்டது",
+
+    // Payment Status
+    paymentStatus: "பணம் செலுத்தும் நிலை",
+    all: "அனைத்தும்",
+    paid: "செலுத்தப்பட்டது",
+    unpaid: "செலுத்தப்படவில்லை",
+    paymentStatusColumn: "நிலை",
 
     // Placeholders
     vanNumberPlaceholder: "TNXX",

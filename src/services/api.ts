@@ -10,6 +10,7 @@ export interface VanRentalTrip {
   rent: number;
   miscSpending: number;
   totalRent: number;
+  paid?: boolean;
 }
 
 const API_BASE = "https://van-rental-service.onrender.com/api/trips"; // Spring Boot backend URL
@@ -68,6 +69,45 @@ export const vanRentalAPI = {
     });
     const res = await fetch(`${API_BASE}/filter?${params.toString()}`);
     if (!res.ok) throw new Error("Failed to search by date and van");
+    return res.json();
+  },
+
+  // Record payment
+  recordPayment: async (startDate: string, endDate: string, vanNumber: string, transactionDate: string, amount: number): Promise<void> => {
+    const params = new URLSearchParams({
+      startDate,
+      endDate,
+      vanNumber,
+      transactionDate,
+      amount: amount.toString(),
+    });
+    const res = await fetch(`${API_BASE}/recordPayment?${params.toString()}`, {
+      method: "POST",
+    });
+    if (!res.ok) throw new Error("Failed to record payment");
+  },
+
+  // Search with payment status filter
+  searchTripsWithPaymentFilter: async (query: string, paymentStatus: 'all' | 'paid' | 'unpaid'): Promise<VanRentalTrip[]> => {
+    const params = new URLSearchParams({
+      query,
+      paymentStatus,
+    });
+    const res = await fetch(`${API_BASE}/search?${params.toString()}`);
+    if (!res.ok) throw new Error("Failed to search trips");
+    return res.json();
+  },
+
+  // Search by date, van and payment status
+  searchByDateVanAndPayment: async (startDate: string, endDate: string, vanNumber: string, paymentStatus: 'all' | 'paid' | 'unpaid'): Promise<VanRentalTrip[]> => {
+    const params = new URLSearchParams({
+      startDate,
+      endDate,
+      vanNumber,
+      paymentStatus,
+    });
+    const res = await fetch(`${API_BASE}/filter?${params.toString()}`);
+    if (!res.ok) throw new Error("Failed to search by date, van and payment status");
     return res.json();
   },
 };
