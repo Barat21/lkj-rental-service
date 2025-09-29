@@ -28,6 +28,10 @@ export interface Translations {
   startDate: string;
   endDate: string;
   searchPlaceholder: string;
+  filterByStatus: string;
+  allTrips: string;
+  paidTrips: string;
+  unpaidTrips: string;
 
   // Table
   tripRecords: string;
@@ -45,7 +49,23 @@ export interface Translations {
   deleteTrip: string;
   saveChanges: string;
   cancelEdit: string;
+  paid: string;
+  unpaid: string;
 
+  // Payment related
+  recordPayment: string;
+  paymentRecords: string;
+  fromDate: string;
+  toDate: string;
+  amount: string;
+  paymentDate: string;
+  addPayment: string;
+  addingPayment: string;
+  noPaymentsFound: string;
+  addPaymentToStart: string;
+  editPayment: string;
+  deletePayment: string;
+  totalPaymentSum: string;
   // Messages
   showingResults: string;
   showAllTrips: string;
@@ -88,6 +108,10 @@ export const translations: Record<string, Translations> = {
     startDate: "Start Date",
     endDate: "End Date",
     searchPlaceholder: "Search by Trip ID, Van Number, Location...",
+    filterByStatus: "Filter by Status",
+    allTrips: "All Trips",
+    paidTrips: "Paid Trips",
+    unpaidTrips: "Unpaid Trips",
 
     // Table
     tripRecords: "Trip Records",
@@ -105,7 +129,23 @@ export const translations: Record<string, Translations> = {
     deleteTrip: "Delete trip",
     saveChanges: "Save changes",
     cancelEdit: "Cancel edit",
+    paid: "Paid",
+    unpaid: "Unpaid",
 
+    // Payment related
+    recordPayment: "Record Payment",
+    paymentRecords: "Payment Records",
+    fromDate: "From Date",
+    toDate: "To Date",
+    amount: "Amount",
+    paymentDate: "Payment Date",
+    addPayment: "Add Payment",
+    addingPayment: "Adding Payment...",
+    noPaymentsFound: "No payments found",
+    addPaymentToStart: "Add a new payment to get started",
+    editPayment: "Edit payment",
+    deletePayment: "Delete payment",
+    totalPaymentSum: "Total Payment Sum:",
     // Messages
     showingResults: "search results",
     showAllTrips: "Show all trips",
@@ -146,6 +186,10 @@ export const translations: Record<string, Translations> = {
     startDate: "தொடக்க தேதி",
     endDate: "முடிவு தேதி",
     searchPlaceholder: "பயண ஐடி, வேன் எண், இடம் மூலம் தேடவும்...",
+    filterByStatus: "நிலை மூலம் வடிகட்டவும்",
+    allTrips: "அனைத்து பயணங்கள்",
+    paidTrips: "செலுத்தப்பட்ட பயணங்கள்",
+    unpaidTrips: "செலுத்தப்படாத பயணங்கள்",
 
     // Table
     tripRecords: "பயண பதிவுகள்",
@@ -163,7 +207,23 @@ export const translations: Record<string, Translations> = {
     deleteTrip: "பயணத்தை நீக்கவும்",
     saveChanges: "மாற்றங்களை சேமிக்கவும்",
     cancelEdit: "திருத்தலை ரத்து செய்யவும்",
+    paid: "செலுத்தப்பட்டது",
+    unpaid: "செலுத்தப்படவில்லை",
 
+    // Payment related
+    recordPayment: "பணம் செலுத்துதல் பதிவு",
+    paymentRecords: "பணம் செலுத்துதல் பதிவுகள்",
+    fromDate: "தொடக்க தேதி",
+    toDate: "முடிவு தேதி",
+    amount: "தொகை",
+    paymentDate: "பணம் செலுத்திய தேதி",
+    addPayment: "பணம் செலுத்துதல் சேர்க்கவும்",
+    addingPayment: "பணம் செலுத்துதல் சேர்க்கிறது...",
+    noPaymentsFound: "பணம் செலுத்துதல் இல்லை",
+    addPaymentToStart: "தொடங்க புதிய பணம் செலுத்துதல் சேர்க்கவும்",
+    editPayment: "பணம் செலுத்துதலை திருத்தவும்",
+    deletePayment: "பணம் செலுத்துதலை நீக்கவும்",
+    totalPaymentSum: "மொத்த பணம் செலுத்துதல் தொகை:",
     // Messages
     showingResults: "தேடல் முடிவுகள்",
     showAllTrips: "அனைத்து பயணங்களையும் காட்டவும்",
