@@ -5,23 +5,13 @@ import { Translations } from '../utils/translations';
 interface SearchBarProps {
   onSearch: (query: string) => void;
   onAdvancedSearch: (startDate: string, endDate: string, vanNumber: string) => void;
-  onStatusFilter?: (status: boolean | null) => void;
   loading?: boolean;
   t: Translations;
-  showStatusFilter?: boolean;
 }
 
-export const SearchBar: React.FC<SearchBarProps> = ({ 
-  onSearch, 
-  onAdvancedSearch, 
-  onStatusFilter, 
-  loading, 
-  t, 
-  showStatusFilter = false 
-}) => {
+export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onAdvancedSearch, loading, t }) => {
   const [generalSearch, setGeneralSearch] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [advancedSearch, setAdvancedSearch] = useState({
     startDate: '',
     endDate: '',
@@ -36,19 +26,6 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   const handleAdvancedSearch = (e: React.FormEvent) => {
     e.preventDefault();
     onAdvancedSearch(advancedSearch.startDate, advancedSearch.endDate, advancedSearch.vanNumber);
-  };
-
-  const handleStatusFilterChange = (status: string) => {
-    setStatusFilter(status);
-    if (onStatusFilter) {
-      if (status === 'paid') {
-        onStatusFilter(true);
-      } else if (status === 'unpaid') {
-        onStatusFilter(false);
-      } else {
-        onStatusFilter(null);
-      }
-    }
   };
 
   return (
@@ -66,7 +43,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
 
       {/* General Search */}
       <form onSubmit={handleGeneralSearch} className="mb-4">
-        <div className="flex gap-3 items-end">
+        <div className="flex gap-3">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
@@ -77,22 +54,6 @@ export const SearchBar: React.FC<SearchBarProps> = ({
               className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
             />
           </div>
-          {showStatusFilter && (
-            <div className="min-w-[150px]">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t.filterByStatus}
-              </label>
-              <select
-                value={statusFilter}
-                onChange={(e) => handleStatusFilterChange(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-              >
-                <option value="all">{t.allTrips}</option>
-                <option value="paid">{t.paidTrips}</option>
-                <option value="unpaid">{t.unpaidTrips}</option>
-              </select>
-            </div>
-          )}
           <button
             type="submit"
             disabled={loading}

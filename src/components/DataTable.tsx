@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CreditCard as Edit2, Save, X, Download, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Edit2, Save, X, Download, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { VanRentalTrip } from '../services/api';
 import { Translations } from '../utils/translations';
 
@@ -231,9 +231,6 @@ export const DataTable: React.FC<DataTableProps> = ({
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 {t.totalRent}
               </th>
-             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-               Status
-             </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 {t.actions}
               </th>
@@ -272,15 +269,6 @@ export const DataTable: React.FC<DataTableProps> = ({
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {renderCell(trip, 'totalRent', true)}
                 </td>
-               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                   trip.paid 
-                     ? 'bg-green-100 text-green-800' 
-                     : 'bg-red-100 text-red-800'
-                 }`}>
-                   {trip.paid ? t.paid : t.unpaid}
-                 </span>
-               </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   <div className="flex items-center gap-2">
                     {editingId === trip.id ? (
@@ -325,7 +313,7 @@ export const DataTable: React.FC<DataTableProps> = ({
           </tbody>
           <tfoot className="bg-gray-50">
             <tr>
-             <td colSpan={10} className="px-6 py-4 text-right font-semibold text-gray-900">
+              <td colSpan={9} className="px-6 py-4 text-right font-semibold text-gray-900">
                 {t.totalRentSum}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">
