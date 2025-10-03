@@ -24,6 +24,8 @@ export const DataTable: React.FC<DataTableProps> = ({
   const [editData, setEditData] = useState<Partial<VanRentalTrip>>({});
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [showAdvanceModal, setShowAdvanceModal] = useState(false);
+  const [advanceAmount, setAdvanceAmount] = useState('');
 
   const totalRentSum = trips.reduce((sum, trip) => sum + trip.totalRent, 0);
   
@@ -38,6 +40,22 @@ export const DataTable: React.FC<DataTableProps> = ({
     setCurrentPage(1);
   }, [trips.length]);
 
+  const handleExportClick = () => {
+    setShowAdvanceModal(true);
+    setAdvanceAmount('');
+  };
+
+  const handleExportConfirm = () => {
+    const advance = parseFloat(advanceAmount) || 0;
+    onExport(advance);
+    setShowAdvanceModal(false);
+    setAdvanceAmount('');
+  };
+
+  const handleExportCancel = () => {
+    setShowAdvanceModal(false);
+    setAdvanceAmount('');
+  };
   const startEdit = (trip: VanRentalTrip) => {
     setEditingId(trip.id);
     setEditData(trip);
@@ -160,7 +178,7 @@ export const DataTable: React.FC<DataTableProps> = ({
             <span className="text-sm text-gray-600">entries</span>
           </div>
           <button
-            onClick={onExport}
+            onClick={handleExportClick}
             className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
           >
             <Download className="h-4 w-4" />
@@ -378,6 +396,43 @@ export const DataTable: React.FC<DataTableProps> = ({
             >
               Last
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Advance Amount Modal */}
+      {showAdvanceModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Enter Advance Amount</h3>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Advance Given
+              </label>
+              <input
+                type="number"
+                value={advanceAmount}
+                onChange={(e) => setAdvanceAmount(e.target.value)}
+                placeholder="0"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                autoFocus
+              />
+            </div>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={handleExportCancel}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleExportConfirm}
+                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Export PDF
+              </button>
+            </div>
           </div>
         </div>
       )}

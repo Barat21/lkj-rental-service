@@ -22,6 +22,12 @@ function App() {
   const [isFormCollapsed, setIsFormCollapsed] = useState(true);
   const [isPaymentFormCollapsed, setIsPaymentFormCollapsed] = useState(true);
   const [paymentFilter, setPaymentFilter] = useState<'all' | 'paid' | 'unpaid'>('unpaid');
+  const [currentSearchQuery, setCurrentSearchQuery] = useState('');
+  const [currentAdvancedSearch, setCurrentAdvancedSearch] = useState({
+    startDate: '',
+    endDate: '',
+    vanNumber: ''
+  });
   
   const t = useTranslation(language);
 
@@ -48,7 +54,21 @@ function App() {
   // Load trips when payment filter changes
   useEffect(() => {
     if (isAuthenticated) {
-      loadTripsWithFilter();
+      // If there's an active search, re-run the search with new payment filter
+      if (isSearching) {
+        if (currentSearchQuery) {
+          handleSearch(currentSearchQuery);
+        } else {
+          handleAdvancedSearch(
+            currentAdvancedSearch.startDate,
+            currentAdvancedSearch.endDate,
+            currentAdvancedSearch.vanNumber,
+            paymentFilter
+          );
+        }
+      } else {
+        loadTripsWithFilter();
+      }
     }
   }, [paymentFilter, isAuthenticated]);
 
@@ -159,6 +179,9 @@ function App() {
   };
 
   const handleSearch = async (query: string) => {
+    setCurrentSearchQuery(query);
+    setCurrentAdvancedSearch({ startDate: '', endDate: '', vanNumber: '' });
+    
     if (!query.trim()) {
       const filteredTrips = filterTripsByPaymentStatus(trips, paymentFilter);
       setSearchResults(filteredTrips);
@@ -179,6 +202,9 @@ function App() {
   };
 
   const handleAdvancedSearch = async (startDate: string, endDate: string, vanNumber: string, paymentStatus: 'all' | 'paid' | 'unpaid') => {
+    setCurrentSearchQuery('');
+    setCurrentAdvancedSearch({ startDate, endDate, vanNumber });
+    
     if (!startDate && !endDate && !vanNumber) {
       const filteredTrips = filterTripsByPaymentStatus(trips, paymentStatus);
       setSearchResults(filteredTrips);
@@ -203,8 +229,8 @@ function App() {
     }
   };
 
-  const handleExport = () => {
-    exportToPDF(searchResults);
+  const handleExport = (advanceAmount: number = 0) => {
+    exportToPDF(searchResults, advanceAmount);
   };
 
   const handlePaymentFilterChange = (filter: 'all' | 'paid' | 'unpaid') => {
@@ -213,8 +239,10 @@ function App() {
   };
 
   const handleRefresh = () => {
-    loadTripsWithFilter();
+    setCurrentSearchQuery('');
+    setCurrentAdvancedSearch({ startDate: '', endDate: '', vanNumber: '' });
     setIsSearching(false);
+    loadTripsWithFilter();
   };
 
   // Show login screen if not authenticated

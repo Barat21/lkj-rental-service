@@ -4,7 +4,10 @@ import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
 
 // Alternative method using HTML table for better Unicode support
-const exportViaHTML = async (trips: VanRentalTrip[]) => {
+const exportViaHTML = async (trips: VanRentalTrip[], advanceAmount: number = 0) => {
+  const totalRentSum = trips.reduce((sum, trip) => sum + trip.totalRent, 0);
+  const balanceAmount = totalRentSum - advanceAmount;
+
   // Create a temporary HTML table
   const tableHTML = `
     <div style="font-family: Arial, sans-serif; padding: 20px; background: white;">
@@ -41,14 +44,26 @@ const exportViaHTML = async (trips: VanRentalTrip[]) => {
             </tr>
           `).join('')}
           <tr style="background-color: #f8f9fa; font-weight: bold;">
-            <td colspan="9" style="border: 1px solid #ddd; padding: 8px; text-align: right;">Total:</td>
-            <td style="border: 1px solid #ddd; padding: 8px;">${trips.reduce((sum, trip) => sum + trip.totalRent, 0).toLocaleString()}</td>
+            <td colspan="9" style="border: 1px solid #ddd; padding: 8px; text-align: right;">Total Amount:</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">${totalRentSum.toLocaleString()}</td>
           </tr>
+          ${advanceAmount > 0 ? `
+            <tr style="background-color: #fff3cd; font-weight: bold;">
+              <td colspan="9" style="border: 1px solid #ddd; padding: 8px; text-align: right;">Advance Given:</td>
+              <td style="border: 1px solid #ddd; padding: 8px; color: #856404;">-${advanceAmount.toLocaleString()}</td>
+            </tr>
+            <tr style="background-color: #d4edda; font-weight: bold;">
+              <td colspan="9" style="border: 1px solid #ddd; padding: 8px; text-align: right;">Balance Amount:</td>
+              <td style="border: 1px solid #ddd; padding: 8px; color: #155724;">${balanceAmount.toLocaleString()}</td>
+            </tr>
+          ` : ''}
         </tbody>
       </table>
       <div style="margin-top: 20px; font-size: 10px;">
         <p>Generated on: ${new Date().toLocaleString()}</p>
         <p>Total Records: ${trips.length}</p>
+        ${advanceAmount > 0 ? `<p>Advance Amount: ${advanceAmount.toLocaleString()}</p>` : ''}
+        ${advanceAmount > 0 ? `<p>Balance Amount: ${balanceAmount.toLocaleString()}</p>` : ''}
       </div>
     </div>
   `;
@@ -103,12 +118,15 @@ const exportViaHTML = async (trips: VanRentalTrip[]) => {
   }
 };
 
-export const exportToPDF = async (trips: VanRentalTrip[]) => {
+export const exportToPDF = async (trips: VanRentalTrip[], advanceAmount: number = 0) => {
   try {
     // Try the HTML-to-canvas method for better Unicode support
-    await exportViaHTML(trips);
+    await exportViaHTML(trips, advanceAmount);
   } catch (error) {
     console.error('HTML export failed, falling back to basic PDF:', error);
+    
+    const totalRentSum = trips.reduce((sum, trip) => sum + trip.totalRent, 0);
+    const balanceAmount = totalRentSum - advanceAmount;
     
     // Fallback to basic jsPDF method
     const doc = new jsPDF();
@@ -137,8 +155,12 @@ export const exportToPDF = async (trips: VanRentalTrip[]) => {
       trip.totalRent.toLocaleString()
     ]);
     
-    const totalRentSum = trips.reduce((sum, trip) => sum + trip.totalRent, 0);
-    data.push(['', '', '', '', '', '', '', '', 'Total:', totalRentSum.toLocaleString()]);
+    // Add summary rows
+    data.push(['', '', '', '', '', '', '', '', 'Total Amount:', totalRentSum.toLocaleString()]);
+    if (advanceAmount > 0) {
+      data.push(['', '', '', '', '', '', '', '', 'Advance Given:', `-${advanceAmount.toLocaleString()}`]);
+      data.push(['', '', '', '', '', '', '', '', 'Balance Amount:', balanceAmount.toLocaleString()]);
+    }
     
     autoTable(doc, {
       head: [headers],
@@ -154,6 +176,17 @@ export const exportToPDF = async (trips: VanRentalTrip[]) => {
         fillColor: [37, 99, 235],
         textColor: 255,
         fontStyle: 'bold'
+      },
+      didParseCell: function (data) {
+        // Style the summary rows
+        if (data.row.index >= trips.length) {
+          data.cell.styles.fontStyle = 'bold';
+          if (data.cell.text[0]?.includes('Advance')) {
+            data.cell.styles.textColor = [133, 100, 4]; // Brown color for advance
+          } else if (data.cell.text[0]?.includes('Balance')) {
+            data.cell.styles.textColor = [21, 87, 36]; // Green color for balance
+          }
+        }
       },
       columnStyles: {
         3: { cellWidth: 40 },
